@@ -135,7 +135,7 @@ FEATURE_NAMES = ['speed', 'overlaps_0', 'overlaps_1', 'overlaps_2',
                  'overlaps_3', 'overlaps_4', 'key_press_ms_avg',
                  'key_press_ms_sd']
 
-DIR = 'data/kprofiler-20100716-1442/'
+DIR = '../data/kprofiler-20100716-1442/'
 
 with open('samples.csv', 'w') as csvfile:
     csvwriter = csv.writer(csvfile)
