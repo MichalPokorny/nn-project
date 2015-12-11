@@ -11,23 +11,29 @@ import os.path
 SCANCODE_VALUES = {
     8: 'Backspace',
     9: 'Tab',
-    16: 'Shift',
-    32: ' ',
-    59: '^;', # TODO: browser-specific
-    106: 'Numpad_*',
-    107: '?\\', # TODO: browser-specific
     13: 'Enter',
+    16: 'Shift',
+    17: 'Ctrl',
+    32: ' ',
+    20: 'CapsLock',
     33: 'PgUp',
     34: 'PgDn',
     35: '#',
     36: 'Home/$',
     37: '%',
     38: '&',
+    40: '(',
     46: 'Delete',
+    59: '^;', # TODO: browser-specific
+    61: '=?', # TODO: browser-specific
+    91: '[', # TODO: browser-specific
+    106: 'Numpad_*',
+    107: '?\\', # TODO: browser-specific
     188: ';,<',
     190: ':.',
     191: "?'",
     222: "'", # TODO: Opera-only
+    226: '>|', # TODO: browser-specific
 }
 
 
