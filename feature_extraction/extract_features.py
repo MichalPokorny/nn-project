@@ -36,6 +36,22 @@ SCANCODE_VALUES = {
     226: '>|', # TODO: browser-specific
 }
 
+KEY_SECTORS = [
+    ['qQ', 'wW', 'eE', 'rR', 'tT'],
+    ['yY', 'uU', 'iI', 'oO', 'pP'],
+    ['aA', 'sS', 'dD', 'fF', 'gG'],
+    ['hH', 'jJ', 'kK', 'lL'],
+    ['zZ', 'xX', 'cC', 'vV'],
+    ['bB', 'nN', 'mM', ';,<', ':.']
+]
+
+
+def sector_of_key(key):
+    for i, sector in enumerate(KEY_SECTORS):
+        if key in sector:
+            return i
+    return -1
+
 
 class Event(object):
     def __init__(self, sentence_id, user_id, timestamp, dn_up, key):
@@ -129,7 +145,7 @@ def window_to_features(window):
                 key_down_at = keys_down[event.key]
                 key_up_at = event.timestamp
 
-                key_intervals.append((key_down_at, key_up_at))
+                key_intervals.append((key_down_at, key_up_at, event.key))
 
                 del keys_down[event.key]
 
@@ -143,17 +159,39 @@ def window_to_features(window):
         else:
             features['overlaps_%d' % overlap_count] = 0
 
-    key_press_times_ms = [(up - down).total_seconds() * 1000 for down, up in key_intervals]
+    key_press_times_ms = [(up - down).total_seconds() * 1000 for down, up, _key in key_intervals]
     features['key_press_ms_avg'] = numpy.mean(key_press_times_ms)
     features['key_press_ms_sd'] = numpy.std(key_press_times_ms)
 
     space_lengths_ms = []
+    sector_space_lengths_ms = {}
     key_intervals = list(sorted(key_intervals))
     for i in range(1, len(key_intervals)):
-        space_lengths_ms.append((key_intervals[i][0] - key_intervals[i - 1][1]).total_seconds() * 1000)
+        time = (key_intervals[i][0] - key_intervals[i - 1][1]).total_seconds() * 1000
+        space_lengths_ms.append(time)
+
+        key_from = key_intervals[i - 1][2]
+        key_to = key_intervals[i][2]
+        sector_from = sector_of_key(key_from)
+        sector_to = sector_of_key(key_to)
+        key = (sector_from, sector_to)
+        if key not in sector_space_lengths_ms:
+            sector_space_lengths_ms[key] = []
+        sector_space_lengths_ms[key].append(time)
+
     features['space_length_ms_avg'] = numpy.mean(space_lengths_ms)
     features['space_length_ms_sd'] = numpy.std(space_lengths_ms)
 
+    for sector_from in range(-1, len(KEY_SECTORS)):
+        for sector_to in range(-1, len(KEY_SECTORS)):
+            key = (sector_from, sector_to)
+            if key in sector_space_lengths_ms:
+                avg = numpy.mean(sector_space_lengths_ms[key])
+            else:
+                # impute missing values
+                # TODO: maybe do this in matlab?
+                avg = numpy.mean(space_lengths_ms)
+            features['sector_%d_to_%d_ms_avg' % key] = avg
 
     features['backspaces_deletes'] = sum(1 for event in window if event.key in
                                          ['Backspace', 'Delete']) / float(len(window))
@@ -164,6 +202,9 @@ FEATURE_NAMES = ['speed', 'overlaps_0', 'overlaps_1', 'overlaps_2',
                  'overlaps_3', 'overlaps_4', 'key_press_ms_avg',
                  'key_press_ms_sd', 'space_length_ms_avg',
                  'space_length_ms_sd', 'backspaces_deletes']
+for sector_from in range(-1, len(KEY_SECTORS)):
+    for sector_to in range(-1, len(KEY_SECTORS)):
+        FEATURE_NAMES.append('sector_%d_to_%d_ms_avg' % (sector_from, sector_to))
 
 DIR = '../data/kprofiler-20100716-1442/'
 
