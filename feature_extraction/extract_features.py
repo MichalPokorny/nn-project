@@ -23,6 +23,7 @@ SCANCODE_VALUES = {
     36: 'Home/$',
     37: '%',
     38: '&',
+    46: 'Delete',
     188: ';,<',
     190: ':.',
     191: "?'",
@@ -101,21 +102,31 @@ def window_to_features(window):
     features['speed'] = keydowns / span_s
 
     # overlaps
-    key_press_times_ms = []
     keys_down = {}
     overlaps = {}
+
+    key_intervals = []
+
     for event in window:
         if event.dn_up == 'dn':
+            if event.key in keys_down:
+                continue  # repeated keydown event
+
             if len(keys_down) not in overlaps:
                 overlaps[len(keys_down)] = 0
             overlaps[len(keys_down)] += 1
 
             keys_down[event.key] = event.timestamp
+
         if event.dn_up == 'up':
             if event.key in keys_down:  # may not be down (if windowed)
-                millis = (event.timestamp - keys_down[event.key]).total_seconds() * 1000
-                key_press_times_ms.append(millis)
+                key_down_at = keys_down[event.key]
+                key_up_at = event.timestamp
+
+                key_intervals.append((key_down_at, key_up_at))
+
                 del keys_down[event.key]
+
 
     for overlap_count in overlaps:
         overlaps[overlap_count] /= float(len(window))
@@ -126,14 +137,27 @@ def window_to_features(window):
         else:
             features['overlaps_%d' % overlap_count] = 0
 
+    key_press_times_ms = [(up - down).total_seconds() * 1000 for down, up in key_intervals]
     features['key_press_ms_avg'] = numpy.mean(key_press_times_ms)
     features['key_press_ms_sd'] = numpy.std(key_press_times_ms)
+
+    space_lengths_ms = []
+    key_intervals = list(sorted(key_intervals))
+    for i in range(1, len(key_intervals)):
+        space_lengths_ms.append((key_intervals[i][0] - key_intervals[i - 1][1]).total_seconds() * 1000)
+    features['space_length_ms_avg'] = numpy.mean(space_lengths_ms)
+    features['space_length_ms_sd'] = numpy.std(space_lengths_ms)
+
+
+    features['backspaces_deletes'] = sum(1 for event in window if event.key in
+                                         ['Backspace', 'Delete']) / float(len(window))
 
     return features
 
 FEATURE_NAMES = ['speed', 'overlaps_0', 'overlaps_1', 'overlaps_2',
                  'overlaps_3', 'overlaps_4', 'key_press_ms_avg',
-                 'key_press_ms_sd']
+                 'key_press_ms_sd', 'space_length_ms_avg',
+                 'space_length_ms_sd', 'backspaces_deletes']
 
 DIR = '../data/kprofiler-20100716-1442/'
 
