@@ -1,14 +1,19 @@
 library(ggplot2)
 library(class)
+library(doBy)
+library(Hmisc)
 
 #extract_id <- function(x) as.integer(substr(x,6,1000))
 
 data <- read.csv("../feature_extraction/samples.csv");
 data$user_id <- as.factor(data$user_id)
 data <- data[complete.cases(data),]
-reps <- 10
+reps <- 100
 knum <- 200
-accs <- rep(0, knum)
+#accs <- rep(0, knum)
+
+kn.data <- data.frame(rep(0,reps*k),rep(0,reps*k),rep(0,reps*k))
+colnames(kn.data) <- c("Repetition", "K", "Accuracy")
 
 for (rep in 1:reps) {
   print(rep)
@@ -35,15 +40,26 @@ for (rep in 1:reps) {
   for (k in 1:knum) {
     knn.res <- knn(train.knn, test.knn, train.true, k = k)
     acc <- sum(knn.res == test.true) / length(test.true)
-    accs[k] <- accs[k] + acc
+    kn.data[knum * (rep - 1) + k,] <- c(rep, k, acc)
+    #accs[k] <- accs[k] + acc
     #print(acc)
   }
 }
 
-accs <- accs / reps
+kn.summary <- summaryBy(Accuracy ~ K,
+                     data = kn.data,
+                     FUN = c(length, mean, sd))
 
 theme_set(theme_bw(15))
-g <- ggplot() + geom_line(aes(x=1:length(accs),y=accs))
+g <- ggplot() + geom_line(data = kn.summary,
+                          aes(x=K,y=Accuracy.mean))
+g <- g + stat_summary(
+  aes(x = K, y = Accuracy),
+  data = kn.data,
+  fun.data = "mean_cl_boot",
+  color = "red"
+  #,geom = "errorbar"
+  )
 g <- g + xlab("K") + ylab("Accuracy")
 print(g)
 
