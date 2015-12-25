@@ -1,0 +1,24 @@
+=========
+=RESULTS=
+=========
+
+Combined results of all methods
+
+Trivial classifier
+------------------
+Accuracy = 5.09854%
+
+95 percent confidence interval:
+5.038855% 5.158225%
+
+KNN - classifier
+----------------
+Best result for K = 98
+Accuracy = 9.185%
+
+Mlogit (trained by neural network)
+----------------------------------
+Accuracy = 17.08029%
+
+95 percent confidence interval:
+16.73249% 17.42809%

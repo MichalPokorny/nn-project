@@ -1,2 +1,0 @@
-Best result for K = 98
-Accuracy = 9.185%

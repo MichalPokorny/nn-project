@@ -1,4 +1,0 @@
-accuracy = 0.1708029
-
-95 percent confidence interval:
- 0.1673249 0.1742809
