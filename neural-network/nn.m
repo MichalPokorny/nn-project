@@ -5,7 +5,7 @@ data = csvread(filename);
 
 %% Preprocess data so that inputs and outputs are columns
 
-% filter 0, 1 users
+% filter out 0, 1 users
 data = data(data(:,1) ~= 0 & data(:,1) ~= 1,:);
 
 data = data(data(:,1) == 144 | data(:,1) == 145,:);
