@@ -73,3 +73,9 @@ allFloats <- as.vector(unlist(allFloats))
 allTrues <- as.vector(unlist(allTrues))
 
 p <- PRcurve(allFloats, allTrues)
+
+# plotting ROC
+pred <- prediction(allFloats, allTrues)
+roc.perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(roc.perf)
+abline(a=0, b=1)
