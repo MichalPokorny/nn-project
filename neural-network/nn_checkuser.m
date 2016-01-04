@@ -19,11 +19,10 @@ tprs = 0:0.01:1;
 % false positive rates corresponding to tprs
 fprs = zeros(length(idxes), length(tprs));
 
-for i = 1:length(uniq)
-%for i = idxes
+for i = idxes
     detectedUserId = uniq(i);
     
-    disp('training to check for user ' + uniq(i));
+    disp(['training to check for user ', num2str(detectedUserId), ' (', num2str(i), ' of ', num2str(length(idxes)), ')']);
     % Check for the i-th user.
     % target: 1 means "intruder"
     %target = zeros(2, length(userids));
@@ -72,10 +71,10 @@ for i = 1:length(uniq)
     [tpr, fpr, thresholds] = roc(t, y);
     for tprIndex = 1:length(tprs)
         tprLevel = tprs(tprIndex);
-        disp('looking for tpr level ' + tprLevel);
+        % disp('looking for tpr level ' + tprLevel);
         for j = 1:length(tpr)
             if (tpr(j) >= tprLevel || j == length(tpr))
-                disp(['found tpr level ', num2str(tpr(j)), ' at ', num2str(j), ', corresponding fpr ', num2str(fpr(j))]);
+                % disp(['found tpr level ', num2str(tpr(j)), ' at ', num2str(j), ', corresponding fpr ', num2str(fpr(j))]);
                 fprs(i,tprIndex) = fpr(j);
                 break;
             end
@@ -92,7 +91,15 @@ for i = 1:length(uniq)
 end
 
 % Plot average ROC
+
+
 plot(tprs, mean(fprs));
+axis([0 1 0 1]);
 print('average_roc', '-dpng');
 
-%errorbars(tprs, mean(fprs), 2*std(fprs));
+errorbar(tprs, mean(fprs), 2 * std(fprs));
+axis([0 1 0 1]);
+print('average_roc_errorbars', '-dpng');
+
+plot(tprs, fprs);
+print('rocs', '-dpng');
