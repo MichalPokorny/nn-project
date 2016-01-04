@@ -57,12 +57,18 @@ t = target;
 trainFcn = 'trainbr';
 
 % Create a Pattern Recognition Network
-hiddenLayerSize = 10;
+
+bestHiddenLayerSize = 0;
+bestError = 1;
+
+for hiddenLayerSize = 1:100
+%hiddenLayerSize = 10;
 net = patternnet(hiddenLayerSize);
 net.trainParam.showWindow = false;
-net.trainParam.showCommandLine = true;
-net.trainParam.epochs = 10000;
-net.trainParam.max_fail = 1000;  % maximum failed validation checks in a row
+net.trainParam.showCommandLine = false;
+%net.trainParam.showCommandLine = true;
+%net.trainParam.epochs = 10000;
+%net.trainParam.max_fail = 1000;  % maximum failed validation checks in a row
 
 % Setup Division of Data for Training, Validation, Testing
 net.divideParam.trainRatio = 70/100;
@@ -75,10 +81,25 @@ net.divideParam.testRatio = 15/100;
 % Test the Network
 y = net(x);
 e = gsubtract(t,y);
-performance = perform(net,t,y)
+performance = perform(net,t,y);
+
 tind = vec2ind(t);
 yind = vec2ind(y);
-percentErrors = sum(tind ~= yind)/numel(tind);
+
+validation_targets = tind(tr.valInd);
+validation_outputs = yind(tr.valInd);
+
+percentErrors = sum(validation_targets ~= validation_outputs) / numel(validation_targets);
+%percentErrors = sum(tind ~= yind)/numel(tind);
+disp([num2str(hiddenLayerSize), ' => ', num2str(percentErrors)]);
+
+if percentErrors < bestError;
+    bestHiddenLayerSize = hiddenLayerSize;
+    bestError = percentErrors;
+end
+end
+
+disp(['Best hidden layer size: ', num2str(bestHiddenLayerSize), ' => ', num2str(bestError)]);
 
 % View the Network
 %view(net)
